@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <div id="app">
+        <span>普通文本:{{ msg }}</span>
+
+        <el-form label-width="80px" :model="orientation">
+            <el-form-item label="性别">
+                <el-radio-group v-model="orientation.gender">
+                    <el-radio-button label="NONE">不限</el-radio-button>
+                    <el-radio-button label="GENDER_MALE">男</el-radio-button>
+                    <el-radio-button label="GENDER_FEMALE">女</el-radio-button>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="年龄">
+                <el-checkbox-group v-model="orientation.checkedAges" size="medium">
+                    <el-checkbox-button v-for="item in orientation.ageData" :label="item.value" :key="item.value"
+                        @change="chooseData(item, orientation.checkedAges, orientation.ageData, orientation.age)">
+                        {{item.title}}</el-checkbox-button>
+                </el-checkbox-group>
+            </el-form-item>
+            <el-form-item label="兴趣定向">
+                <el-radio-group v-model="orientation.interest_action_mode">
+                    <el-radio-button label="UNLIMITED">不限</el-radio-button>
+                    <el-radio-button label="RECOMMEND">系统推荐</el-radio-button>
+                    <el-radio-button disabled label="CUSTOM">自定义</el-radio-button>
+                </el-radio-group>
+                <div v-if="orientation.interest_action_mode == 'RECOMMEND'" style="width: 50%;">
+                    <span> 兴趣定向根据您的计划，精选出最匹配的人群，帮助您以更低的成本达到更好的投放效果。</span>
+                    <span> 兴趣定向所选的人群会根据投放效果实时动态调整，并逐步放开兴趣定向，兼顾投放量和转化成本。</span>
+                </div>
+
+
+            </el-form-item>
+
+
+            <el-form-item label="网络">
+                <el-checkbox-group v-model="orientation.checkedAc" size="medium">
+                    <el-checkbox-button v-for="item in orientation.acData" :label="item.value" :key="item.value"
+                        @change="chooseData(item, orientation.checkedAc, orientation.acData, orientation.ac)">
+                        {{item.title}}</el-checkbox-button>
+                </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item label="智能放量">
+                <el-radio-group v-model="orientation.auto_extend_enabled">
+                    <el-radio-button label="0">不启用</el-radio-button>
+                    <el-radio-button label="1">启用</el-radio-button>
+                </el-radio-group>
+
+                <el-transfer style="margin-top: 20px;" v-if="orientation.auto_extend_enabled == '1'"
+                    v-model="orientation.auto_extend_targets" :props="{
+              key: 'value',
+              label: 'desc'
+            }" :titles="['可放开定向', '已选']" :data="orientation.auto_extend_enabled_data">
+                </el-transfer>
+            </el-form-item>
+
+
+            <el-form-item label="文章分类">
+                <el-radio-group v-model="orientation.article_category_type">
+                    <el-radio-button label="NONE">不限</el-radio-button>
+                    <el-radio-button label="ARTICLEGATEGORY">文章分类</el-radio-button>
+                </el-radio-group>
+                <el-transfer style="margin-top: 20px;" v-if="orientation.article_category_type == 'ARTICLEGATEGORY'" v-model="orientation.article_category" :props="{
+                  key: 'value',
+                  label: 'desc'
+                }" 
+                :titles="['可放开定向', '已选']"
+                :data="orientation.article_category_data">
+                </el-transfer>
+            </el-form-item>
+
+            <el-form-item label="运营商">
+                <el-checkbox-group v-model="orientation.checkedCarrier" size="medium">
+                    <el-checkbox-button v-for="item in orientation.carrierData" :label="item.value" :key="item.value"
+                        @change="chooseData(item, orientation.checkedCarrier, orientation.carrierData, orientation.carrier)">
+                        {{item.title}}</el-checkbox-button>
+                </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item label="新用户">
+                <el-checkbox-group v-model="orientation.checkedaActivateType" size="medium">
+                    <el-checkbox-button v-for="item in orientation.activateTypeData" :label="item.value"
+                        :key="item.value"
+                        @change="chooseData(item, orientation.checkedaActivateType, orientation.activateTypeData, orientation.activate_type)">
+                        {{item.title}}</el-checkbox-button>
+                </el-checkbox-group>
+            </el-form-item>
+
+
+            <el-form-item label="手机品牌">
+                <el-radio-group v-model="orientation.devicebBrandType">
+                    <el-radio-button label="NONE">不限</el-radio-button>
+                    <el-radio-button label="BRAND">按品牌</el-radio-button>
+                </el-radio-group>
+
+                <el-transfer style="margin-top: 20px;" v-if="orientation.devicebBrandType == 'BRAND'"
+                    v-model="orientation.device_brand" :props="{
+                  key: 'value',
+                  label: 'desc'
+                }" :data="orientation.device_brand_data" :titles="['手机品牌', '已选']">
+                </el-transfer>
+            </el-form-item>
+
+
+            <el-form-item label="手机价格" style="width: 80%;">
+                <el-radio-group v-model="orientation.launchPriceType">
+                    <el-radio-button label="NONE">不限</el-radio-button>
+                    <el-radio-button label="CUSTOM">自定义</el-radio-button>
+                </el-radio-group>
+                <el-slider :max="11000" v-if="orientation.launchPriceType=='CUSTOM'" v-model="orientation.launch_price"
+                    :step="500" show-stops range :marks="orientation.launch_price_data">
+                </el-slider>
+            </el-form-item>
+
+
+
+            <el-form-item label="">
+                <el-button type="primary" @click="showValue(orientation.checkedAges)">显示值</el-button>
+            </el-form-item>
+        </el-form>
+
+
+
+    </div>
+
+</head>
+
+<body>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script type="text/javascript">
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                msg: 'vue',
+                orientation: {
+                    gender: 'NONE',
+                    age: [],
+                    checkedAges: ['NONE'],
+                    ageData: [{ title: '不限', value: 'NONE' }, { title: '18-23', value: 'AGE_BETWEEN_18_23' }, { title: '24-30', value: 'AGE_BETWEEN_24_30' }, { title: '31-40', value: 'AGE_BETWEEN_31_40' }, { title: '41-49', value: 'AGE_BETWEEN_41_49' }, { title: '50+', value: 'AGE_ABOVE_50' }],
+                    interest_action_mode: 'UNLIMITED',
+                    article_category_type: 'NONE',
+                    article_category: [],
+                    article_category_data: [
+                        { 'desc': '娱乐', 'value': 'ENTERTAINMENT' }, { 'desc': '社会', 'value': 'SOCIETY' }, { 'desc': '汽车', 'value': 'CARS' }, { 'desc': '国际', 'value': 'INTERNATIONAL' },
+                        { 'desc': '历史', 'value': 'HISTORY' }, { 'desc': '体育', 'value': 'SPORTS' }, { 'desc': '健康', 'value': 'HEALTH' }, { 'desc': '军事', 'value': 'MILITARY' },
+                        { 'desc': '情感', 'value': 'EMOTION' }, { 'desc': '时尚', 'value': 'FASHION' }, { 'desc': '育儿', 'value': 'PARENTING' }, { 'desc': '财经', 'value': 'FINANCE' },
+                        { 'desc': '搞笑', 'value': 'AMUSEMENT' }, { 'desc': '数码', 'value': 'DIGITAL' }, { 'desc': '探索', 'value': 'EXPLORE' }, { 'desc': '旅游', 'value': 'TRAVEL' },
+                        { 'desc': '星座', 'value': 'CONSTELLATION' }, { 'desc': '故事', 'value': 'STORIES' }, { 'desc': '科技', 'value': 'TECHNOLOGY' }, { 'desc': '美食', 'value': 'GOURMET' },
+                        { 'desc': '文化', 'value': 'CULTURE' }, { 'desc': '家居', 'value': 'HOME' }, { 'desc': '电影', 'value': 'MOVIE' }, { 'desc': '宠物', 'value': 'PETS' },
+                        { 'desc': '游戏', 'value': 'GAMES' }, { 'desc': '瘦身', 'value': 'WEIGHT_LOSING' }, { 'desc': '奇葩', 'value': 'FREAK' }, { 'desc': '教育', 'value': 'EDUCATION' },
+                        { 'desc': '房产', 'value': 'ESTATE' }, { 'desc': '科学', 'value': 'SCIENCE' }, { 'desc': '摄影', 'value': 'PHOTOGRAPHY' }, { 'desc': '养生', 'value': 'REGIMEN' },
+                        { 'desc': '美文', 'value': 'ESSAY' }, { 'desc': '收藏', 'value': 'COLLECTION' }, { 'desc': '动漫', 'value': 'ANIMATION' }, { 'desc': '漫画', 'value': 'COMICS' },
+                        { 'desc': '小窍门', 'value': 'TIPS' }, { 'desc': '设计', 'value': 'DESIGN' }, { 'desc': '本地', 'value': 'LOCAL' }, { 'desc': '法制', 'value': 'LAWS' },
+                        { 'desc': '政务', 'value': 'GOVERNMENT' }, { 'desc': '商业', 'value': 'BUSINESS' }, { 'desc': '职场', 'value': 'WORKPLACE' }, { 'desc': '辟谣', 'value': 'RUMOR_CRACKER' },
+                        { 'desc': '毕业生', 'value': 'GRADUATES' }
+                    ],
+                    carrier: [],
+                    checkedCarrier: ['NONE'],
+                    carrierData: [{ title: '不限', value: 'NONE' }, { title: '移动', value: 'MOBILE' }, { title: '联通', value: 'UNICOM' }, { title: '电信', value: 'TELCOM' }],
+                    ac: [],
+                    checkedAc: ['NONE'],
+                    acData: [{ title: '不限', value: 'NONE' }, { title: 'WIFI', value: 'WIFI' }, { title: '2G', value: '2G' }, { title: '3G', value: '3G' }, { title: '4G', value: '4G' }],
+                    device_brand: [],
+                    device_brand_data: [{ 'desc': '苹果', 'value': 'APPLE' }, { 'desc': '荣耀', 'value': 'HONOR' }, { 'desc': '华为', 'value': 'HUAWEI' },
+                    { 'desc': '小米', 'value': 'XIAOMI' }, { 'desc': '三星', 'value': 'SAMSUNG' }, { 'desc': 'OPPO', 'value': 'OPPO' },
+                    { 'desc': 'VIVO', 'value': 'VIVO' }, { 'desc': '魅族', 'value': 'MEIZU' }, { 'desc': '金立', 'value': 'GIONEE' },
+                    { 'desc': '酷派', 'value': 'COOLPAD' }, { 'desc': '联想', 'value': 'LENOVO' }, { 'desc': '乐视', 'value': 'LETV' },
+                    { 'desc': '中兴', 'value': 'ZTE' }, { 'desc': '中国移动', 'value': 'CHINAMOBILE' }, { 'desc': 'HTC', 'value': 'HTC' },
+                    { 'desc': '小辣椒', 'value': 'PEPPER' }, { 'desc': '努比亚', 'value': 'NUBIA' }, { 'desc': '诺基亚', 'value': 'NOKIA' },
+                    { 'desc': '海信', 'value': 'HISENSE' }, { 'desc': '奇酷', 'value': 'QIKU' }, { 'desc': 'TCL', 'value': 'TCL' },
+                    { 'desc': '索尼', 'value': 'SONY' }, { 'desc': '锤子手机', 'value': 'SMARTISAN' }, { 'desc': '360手机', 'value': '360' },
+                    { 'desc': '一加手机', 'value': 'ONEPLUS' }, { 'desc': 'LG', 'value': 'LG' }, { 'desc': '摩托罗拉', 'value': 'MOTO' },
+                    { 'desc': '谷歌', 'value': 'GOOGLE' }
+                    ],
+                    devicebBrandType: 'NONE',
+                    activate_type: [],
+                    checkedaActivateType: ['NONE'],
+                    activateTypeData: [{ title: '不限', value: 'NONE' }, { title: '一个月以内', value: 'WITH_IN_A_MONTH' }, { title: '一个月到三个月', value: 'ONE_MONTH_2_THREE_MONTH' }, { title: '三个月或更早', value: 'THREE_MONTH_EAILIER' }],
+                    auto_extend_enabled: 0,
+                    auto_extend_targets: [],
+                    auto_extend_enabled_data: [{ 'desc': '地域', 'value': 'REGION' }, { 'desc': '性别', 'value': 'GENDER' }, { 'desc': '年龄', 'value': 'AGE' }, { 'desc': '自定人群-定向', 'value': 'CUSTOM_AUDIENCE' }],
+                    launchPriceType: 'NONE',
+                    launch_price: [0, 11000],
+                    launch_price_data: {
+                        0: '0',
+                        500: '500',
+                        1000: '1000',
+                        1500: '1500',
+                        2000: '2000',
+                        2500: '2500',
+                        3000: '3000',
+                        3500: '3500',
+                        4000: '4000',
+                        5000: '5000',
+                        6000: '6000',
+                        7000: '7000',
+                        8000: '8000',
+                        9000: '9000',
+                        10000: '10000',
+                        11000: '11000'
+                    }
+
+                }
+            },
+            methods: {
+                showValue(arr) {
+
+                    console.log("性别:" + this.orientation.gender)
+                    console.log("年龄:" + this.orientation.age + "长度" + this.orientation.age.length)
+                    console.log("运营商:" + this.orientation.carrier + "长度" + this.orientation.carrier.length)
+                    console.log("新用户:" + this.orientation.activate_type + "长度" + this.orientation.activate_type.length)
+                    console.log("网络:" + this.orientation.ac + "长度" + this.orientation.ac.length)
+                    console.log("手机品牌:" + this.orientation.device_brand + "长度" + this.orientation.device_brand.length)
+
+
+
+                },
+                chooseData(item, checkeds, data, result) {
+                    if (data[0].value == item.value) {
+                        checkeds.splice(0, checkeds.length)
+                        checkeds.push(data[0].value);
+                        result.splice(0, result.length)
+                    } else {
+                        if (checkeds.indexOf(data[0].value) >= 0 ) {
+                            checkeds.splice(checkeds.indexOf(data[0].value), 1)
+                        }
+                        if (result.indexOf(item.value) < 0) {
+                            result.push(item.value)
+                        } else {
+                            result.splice(result.indexOf(item.value), 1)
+                            if (checkeds.length == 0){
+                                checkeds.push(data[0].value)
+                            }
+                        }
+
+                    }
+                }
+            }
+        })
+    </script>
+
+
+</body>
+
+</html>
